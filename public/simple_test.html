@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .test-box {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 10px 0;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-box">
+        <h1>ChamaHub WebView Test</h1>
+        <p>If you can see this, the WebView is working!</p>
+        
+        <div id="status">
+            <p class="info">Loading tests...</p>
+        </div>
+        
+        <button onclick="runTests()">Run Tests</button>
+        <button onclick="testNetwork()">Test Network</button>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            const p = document.createElement('p');
+            p.className = type;
+            p.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            statusDiv.appendChild(p);
+            console.log(message);
+        }
+
+        function runTests() {
+            log('Starting basic tests...', 'info');
+            
+            // Test 1: Basic JavaScript
+            log('✅ JavaScript is working!', 'success');
+            
+            // Test 2: Environment detection
+            const isCapacitor = window.location.protocol === 'capacitor:' || window.location.protocol === 'file:';
+            log(`Environment: ${isCapacitor ? 'Mobile App (Capacitor)' : 'Web Browser'}`, 'info');
+            log(`Protocol: ${window.location.protocol}`, 'info');
+            log(`Host: ${window.location.host}`, 'info');
+            log(`User Agent: ${navigator.userAgent}`, 'info');
+            
+            // Test 3: Capacitor availability
+            if (window.Capacitor) {
+                log('✅ Capacitor is available!', 'success');
+                log(`Platform: ${window.Capacitor.platform}`, 'info');
+            } else {
+                log('❌ Capacitor is not available', 'error');
+            }
+            
+            // Test 4: Local storage
+            try {
+                localStorage.setItem('test', 'value');
+                const value = localStorage.getItem('test');
+                if (value === 'value') {
+                    log('✅ Local storage is working!', 'success');
+                } else {
+                    log('❌ Local storage test failed', 'error');
+                }
+            } catch (e) {
+                log(`❌ Local storage error: ${e.message}`, 'error');
+            }
+        }
+
+        async function testNetwork() {
+            const apiUrl = 'http://10.0.2.2:4000/api';
+            log(`Testing network connection to: ${apiUrl}`, 'info');
+            
+            try {
+                const response = await fetch(`${apiUrl}/users`);
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ Network test successful! Status: ${response.status}`, 'success');
+                    log(`Response: ${JSON.stringify(data).substring(0, 100)}...`, 'info');
+                } else {
+                    log(`❌ Network test failed. Status: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run tests when page loads
+        window.onload = function() {
+            setTimeout(runTests, 1000);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, UserPlus, Mail, Phone, X, Send, Copy, CheckCircle } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { apiClient } from '@/lib/api';
+import { useToast } from "@/hooks/use-toast";
+
+interface CreateGroupModalProps {
+  onGroupCreated?: () => void;
+}
+
+const CreateGroupModal = ({ onGroupCreated }: CreateGroupModalProps) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    contributionAmount: "",
+    contributionFrequency: "monthly",
+    meetingDay: "",
+    meetingTime: ""
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      // Create the group using API with all required fields
+      const response = await apiClient.post('/groups', {
+        name: formData.name,
+        description: formData.description,
+        contribution_amount: parseFloat(formData.contributionAmount) || 0,
+        contribution_frequency: formData.contributionFrequency,
+        meeting_day: formData.meetingDay || null,
+        meeting_time: formData.meetingTime || null,
+        created_by: user.id,
+        // Add default values for required fields
+        min_contribution_amount: 0,
+        max_contribution_amount: null,
+        loan_interest_rate: 5.0,
+        max_loan_multiplier: 3.0,
+        allow_partial_contributions: false,
+        contribution_grace_period_days: 0,
+        group_rules: {
+          rules: '',
+          terms_and_conditions: ''
+        }
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to create group');
+      }
+
+      toast({
+        title: "Success!",
+        description: "Group created successfully",
+      });
+
+      // Reset form and close modal
+      setFormData({
+        name: "",
+        description: "",
+        contributionAmount: "",
+        contributionFrequency: "monthly",
+        meetingDay: "",
+        meetingTime: ""
+      });
+      setOpen(false);
+
+      // Notify parent component
+      if (onGroupCreated) {
+        onGroupCreated();
+      }
+
+    } catch (error: any) {
+      console.error('Error creating group:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create group",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setFormData({
+      name: "",
+      description: "",
+      contributionAmount: "",
+      contributionFrequency: "monthly",
+      meetingDay: "",
+      meetingTime: ""
+    });
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          Create Group
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Create New Chama Group</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Group Name *</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Enter group name"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Brief description of the group"
+              rows={3}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="contributionAmount">Contribution Amount (KES)</Label>
+              <Input
+                id="contributionAmount"
+                type="number"
+                value={formData.contributionAmount}
+                onChange={(e) => setFormData({ ...formData, contributionAmount: e.target.value })}
+                placeholder="1000"
+                min="0"
+                step="0.01"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="contributionFrequency">Frequency</Label>
+              <Select
+                value={formData.contributionFrequency}
+                onValueChange={(value) => setFormData({ ...formData, contributionFrequency: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="quarterly">Quarterly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="meetingDay">Meeting Day</Label>
+              <Select
+                value={formData.meetingDay}
+                onValueChange={(value) => setFormData({ ...formData, meetingDay: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select day" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monday">Monday</SelectItem>
+                  <SelectItem value="tuesday">Tuesday</SelectItem>
+                  <SelectItem value="wednesday">Wednesday</SelectItem>
+                  <SelectItem value="thursday">Thursday</SelectItem>
+                  <SelectItem value="friday">Friday</SelectItem>
+                  <SelectItem value="saturday">Saturday</SelectItem>
+                  <SelectItem value="sunday">Sunday</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="meetingTime">Meeting Time</Label>
+              <Input
+                id="meetingTime"
+                type="time"
+                value={formData.meetingTime}
+                onChange={(e) => setFormData({ ...formData, meetingTime: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={handleCancel} className="flex-1">
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading || !formData.name.trim()} className="flex-1">
+              {loading ? "Creating..." : "Create Group"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default CreateGroupModal;

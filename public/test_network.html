@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Network Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .status { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>ChamaHub Network Test</h1>
+    <div id="status"></div>
+    <button onclick="testConnection()">Test API Connection</button>
+    
+    <script>
+        function log(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            statusDiv.appendChild(div);
+            console.log(message);
+        }
+        
+        function detectEnvironment() {
+            const isCapacitor = window.location.protocol === 'capacitor:' || window.location.protocol === 'file:';
+            const apiUrl = isCapacitor ? 'http://10.0.2.2:4000/api' : 'http://localhost:4000/api';
+            
+            log(`Environment: ${isCapacitor ? 'Mobile App (Capacitor)' : 'Web Browser'}`);
+            log(`Protocol: ${window.location.protocol}`);
+            log(`API URL: ${apiUrl}`);
+            log(`User Agent: ${navigator.userAgent}`);
+            
+            return apiUrl;
+        }
+        
+        async function testConnection() {
+            const apiUrl = detectEnvironment();
+            
+            try {
+                log('Testing API connection...', 'info');
+                const response = await fetch(`${apiUrl}/users`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ API connection successful! Found ${data.length} users`, 'success');
+                    log(`First user: ${data[0]?.email || 'No users found'}`, 'info');
+                } else {
+                    log(`❌ API request failed: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Auto-run test when page loads
+        window.onload = function() {
+            detectEnvironment();
+            testConnection();
+        };
+    </script>
+</body>
+</html>
