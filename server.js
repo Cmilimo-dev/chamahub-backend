@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import mysql from 'mysql2/promise';
+import pg from 'pg';
+const { Pool } = pg;
 import nodemailer from 'nodemailer';
 import twilio from 'twilio';
 import dotenv from 'dotenv';

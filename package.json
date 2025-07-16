@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
+    "start": "node server-postgres.js",
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
@@ -94,6 +94,7 @@
     "mysql2": "^3.14.2",
     "next-themes": "^0.3.0",
     "nodemailer": "^7.0.5",
+    "pg": "^8.16.3",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
