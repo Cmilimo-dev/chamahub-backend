@@ -3,8 +3,16 @@
 // Get the computer's IP address (you'll need to update this to your actual IP)
 const LOCAL_IP = '192.168.100.43';
 
+// Production API URL - will be updated after deployment
+const PRODUCTION_API_URL = 'https://chamahub-backend.onrender.com/api';
+
 // Function to determine the API base URL based on environment
 export const getApiBaseUrl = () => {
+  // Check if we're in production (deployed app)
+  if (import.meta.env.PROD) {
+    return PRODUCTION_API_URL;
+  }
+  
   // Check if running in mobile app (Capacitor)
   // Capacitor apps have window.location.hostname as 'localhost' and specific user agents
   const isCapacitor = window.location.protocol === 'capacitor:' || 
